@@ -44,7 +44,7 @@ bin_img = cv2.imread("binary_image.png", cv2.IMREAD_GRAYSCALE)
 bw.show_labels_and_props(bin_img)
 ```
 
-![Example usage function](images/ex_fun1.PNG)
+![Example usage function](images/ex_fun.PNG)
 
 - Press 'N' to go to the next object.
 - Press 'B' to go back to the previous object.

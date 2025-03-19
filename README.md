@@ -21,6 +21,9 @@ pip install numpy scipy opencv-python skimage screeninfo
 ```
 
 ## Usage
+
+![Example image - binary_image.png](binary_image.png)
+
 ### Function ***show_labels_and_props(bin_img)*** - Detect and analyze objects
 ```py
 import cv2

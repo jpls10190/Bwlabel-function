@@ -1,4 +1,4 @@
-# BwLabel function for Python
+# BwLabel function for Python - Binary object detection
 
 This script processes binary images to identify and analyze objects within them. It computes various properties such as area, bounding box, centroid, orientation, eccentricity, perimeter, aspect ratio, solidity, and extent. Additionally, it provides 
 interactive visualization and property saving options.

@@ -79,3 +79,13 @@ Select Objects Based on Properties
 
 - filtered_image - final image with the selected objects;
 - selected_bboxes - list of the bounding boxes [min_row, min_col, max_row, max_col] of all objects found.
+
+```py
+properties = [7900, 0.982, 0.769, 0.112]
+filtered_image, selected_bboxes = bw.select_objects(bin_img, properties)
+
+cv2.imshow("Detected objects", filtered_image)
+cv2.waitKey(0)
+```
+
+![Example usage detection function](images/ex_fun2.PNG)

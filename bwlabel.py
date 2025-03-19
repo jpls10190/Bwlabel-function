@@ -1,12 +1,31 @@
 import numpy as np
-import matplotlib.pyplot as plt
 from scipy.ndimage import label
-from scipy.ndimage import label, center_of_mass
 import cv2
 from skimage import measure
 from screeninfo import get_monitors
 import re
-import functions as fc
+
+# SHOW THE IMAGE IN THE CENTER OF THE SCREEN
+def imshow_center(img, window_name, monitor=0):
+    # Get the primary monitor (first monitor)
+    monitor = get_monitors()[monitor]
+    # Get the window size (height, width)
+    window_height, window_width = img.shape[:2]
+
+    # Calculate the center of the screen
+    center_x = monitor.width // 2
+    center_y = monitor.height // 2
+
+    # Calculate the top-left corner of the window
+    top_left_x = center_x - (window_width // 2)
+    top_left_y = center_y - (window_height // 2)
+
+    # Create a window and move it to the center of the screen
+    cv2.namedWindow(window_name)
+    cv2.moveWindow(window_name, top_left_x, top_left_y)  # Adjust window size accordingly
+
+    # Display the object with the index
+    cv2.imshow(window_name, img)
 
 # Function description:
 #
@@ -46,6 +65,7 @@ def show_labels_and_props(bin_img):
             min_row, min_col, max_row, max_col = region.bbox
             # Centroid (center of mass)
             centroid = region.centroid
+            centroid = (centroid[0].item(), centroid[1].item())
             # Orientation (angle of the major axis)
             orientation = region.orientation
             # Eccentricity
@@ -100,7 +120,7 @@ def show_labels_and_props(bin_img):
             window_name = f"Object {current_index + 1}"
 
             # Display image in the center
-            fc.imshow_center(colored_image, window_name, 1)
+            imshow_center(colored_image, window_name, 1)
 
             # Wait for key press
             key = cv2.waitKey(0)  # Wait indefinitely until a key is pressed
@@ -193,7 +213,7 @@ def average_properties(txt_file="./properties.txt"):
 #   
 #   Arguments:
 #       img = image to process
-#       properties = [area, soldity, extent, eccentricity]
+#       properties = [area, solidity, extent, eccentricity]
 #       thresh_sol_ext_ecc = threshold for the solidity, extent and eccentricity values   
 #       thresh_area = threshold for the area value 
 
@@ -210,9 +230,9 @@ def select_objects(img, properties, thresh_area= 1200, thresh_sol_ext_ecc= 0.045
     selected_bboxes = []
 
     tarea = properties[0]
-    tsolidity = properties[0]
-    textent = properties[1]
-    teccentricity = properties[2]
+    tsolidity = properties[1]
+    textent = properties[2]
+    teccentricity = properties[3]
 
     # Process each object
     for region in regions:

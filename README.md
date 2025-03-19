@@ -24,7 +24,7 @@ pip install numpy scipy opencv-python skimage screeninfo
 
 Example image : 
 
-![Example image - binary_image.png](binary_image.png)
+![Example image - binary_image.png](images/binary_image.png)
 
 **binary_image.png**
 

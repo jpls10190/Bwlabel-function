@@ -6,6 +6,7 @@ import cv2
 from skimage import measure
 from screeninfo import get_monitors
 import re
+import functions as fc
 
 # Function description:
 #
@@ -14,7 +15,7 @@ import re
 # 
 #   - Interactive:  Shows every object individually and its correspondent properties in the terminal. 
 #                   To go to the next object press "N". 
-#                   To save the properties of a determined object, press 'S' 
+#                   To save the properties of a the current object, press 'S' 
 #                   To exit, press 'Q'
 #   
 def show_labels_and_props(bin_img):
@@ -26,19 +27,6 @@ def show_labels_and_props(bin_img):
 
     # Initialize the index for displaying objects
     current_index = 0
-
-    # Get the primary monitor (first monitor)
-    monitor = get_monitors()[1]
-    # Get the window size (height, width)
-    window_height, window_width = bin_img.shape[:2]
-
-    # Calculate the center of the screen
-    center_x = monitor.width // 2
-    center_y = monitor.height // 2
-
-    # Calculate the top-left corner of the window
-    top_left_x = center_x - (window_width // 2)
-    top_left_y = center_y - (window_height // 2)
 
     # Open a file for saving the properties
     with open('properties.txt', 'w') as f:
@@ -110,12 +98,9 @@ def show_labels_and_props(bin_img):
 
             # Create a window for the object
             window_name = f"Object {current_index + 1}"
-            # Create a window and move it to the center of the screen
-            cv2.namedWindow(window_name)
-            cv2.moveWindow(window_name, top_left_x, top_left_y)  # Adjust window size accordingly
 
-            # Display the object with the index
-            cv2.imshow(window_name, colored_image)
+            # Display image in the center
+            fc.imshow_center(colored_image, window_name, 1)
 
             # Wait for key press
             key = cv2.waitKey(0)  # Wait indefinitely until a key is pressed
@@ -135,6 +120,9 @@ def show_labels_and_props(bin_img):
         # Close all windows
         cv2.destroyAllWindows()
 
+# Function description:
+#
+#   - Computes the average value for each property of the txt file produced in the previous function
 def average_properties(txt_file="./properties.txt"):
 
     # Initialize variables to store the sums and counts of each property
@@ -198,3 +186,57 @@ def average_properties(txt_file="./properties.txt"):
         print(f"Average Extent: {average_extent}")
     else:
         print("No objects found in the properties file.")
+
+# Function description:
+#
+#   - Returns an image with the objects corresponding to the properties given
+#   
+#   Arguments:
+#       img = image to process
+#       properties = [area, soldity, extent, eccentricity]
+#       thresh_sol_ext_ecc = threshold for the solidity, extent and eccentricity values   
+#       thresh_area = threshold for the area value 
+
+def select_objects(img, properties, thresh_area= 1200, thresh_sol_ext_ecc= 0.045):
+    if len(properties) != 4:
+        print("Invalid properties list (length =! 4).")
+        exit()
+    # Label the objects
+    labeled_image, num_labels = label(img)
+    # Get region properties using skimage.measure
+    regions = measure.regionprops(labeled_image)
+    # List to store indices of objects that satisfy the conditions
+    selected_object_indices = []
+    selected_bboxes = []
+
+    tarea = properties[0]
+    tsolidity = properties[0]
+    textent = properties[1]
+    teccentricity = properties[2]
+
+    # Process each object
+    for region in regions:
+        area = region.area
+        eccentricity = region.eccentricity
+        bbox = region.bbox  # Bounding box (min_row, min_col, max_row, max_col)
+        solidity = region.solidity  # Solidity = area / convex_area
+        extent = region.extent  # Extent = area / bounding box area
+
+        check_area = area > (tarea - thresh_area) and area < (tarea + thresh_area)
+        check_solidity = solidity > (tsolidity - thresh_sol_ext_ecc) and solidity < (tsolidity + thresh_sol_ext_ecc)
+        check_extent = extent > (textent - thresh_sol_ext_ecc) and extent < (textent + thresh_sol_ext_ecc)
+        check_eccentricity = eccentricity > (teccentricity - thresh_sol_ext_ecc) and eccentricity < (teccentricity + thresh_sol_ext_ecc)
+
+        # Filtering condition
+        if check_solidity and check_extent and check_eccentricity and check_area:
+            selected_object_indices.append(region.label)  # Store valid object index
+            selected_bboxes.append(bbox)
+
+    # Create a new binary image with only filtered objects
+    filtered_image = np.zeros_like(img)
+
+    # Retain only selected objects
+    for obj_index in selected_object_indices:
+        filtered_image[labeled_image == obj_index] = 255
+
+    return filtered_image, selected_bboxes
